@@ -5,35 +5,49 @@ import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import "./../app/app.css";
 import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
+import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
+import config from "@/amplify/config.js";
 
-Amplify.configure(outputs);
+// Amplifyの設定は必要
+Amplify.configure(config);
 
 const client = generateClient<Schema>();
 
 export default function App() {
+  return (
+    <Authenticator>
+      {({ signOut }) => (
+        <main>
+          <h1>My todos</h1>
+          <TodoList />
+          <button onClick={signOut}>Sign out</button>
+        </main>
+      )}
+    </Authenticator>
+  );
+}
+
+function TodoList() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
 
-  function listTodos() {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }
-
   useEffect(() => {
-    listTodos();
+    client.models.Todo.observeQuery().subscribe({
+      next: ({ items }) => setTodos([...items]),
+    });
   }, []);
 
-  function createTodo() {
-    client.models.Todo.create({
-      content: window.prompt("Todo content"),
-    });
+  async function createTodo() {
+    const content = window.prompt("Todo content");
+    if (content) {
+      await client.models.Todo.create({
+        content,
+      });
+    }
   }
 
   return (
-    <main>
-      <h1>My todos</h1>
+    <>
       <button onClick={createTodo}>+ new</button>
       <ul>
         {todos.map((todo) => (
@@ -47,6 +61,6 @@ export default function App() {
           Review next steps of this tutorial.
         </a>
       </div>
-    </main>
+    </>
   );
 }

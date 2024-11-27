@@ -1,11 +1,13 @@
 import { defineAuth } from "@aws-amplify/backend";
 
-/**
- * Define and configure your auth resource
- * @see https://docs.amplify.aws/gen2/build-a-backend/auth
- */
+// auth.ts
 export const auth = defineAuth({
   loginWith: {
     email: true,
   },
+  userPool: {
+    region: process.env.NEXT_PUBLIC_AWS_REGION,
+    id: process.env.NEXT_PUBLIC_USER_POOL_ID,
+    clientId: process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID,
+  }
 });
