@@ -132,7 +132,7 @@ export default function App() {
       });
       
       const { body } = await restOperation.response;
-      const data: ApiResponse = await body.json();
+      const data = await body.json() as ApiResponse;
       
       if (data.error) {
         setAccountError(data.error);
