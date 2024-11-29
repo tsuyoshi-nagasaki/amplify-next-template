@@ -1,3 +1,14 @@
+// types.ts
+type AuthState = {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  user: {
+    displayName: string;
+  } | null;
+};
+
+// page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -13,13 +24,13 @@ Amplify.configure(outputs);
 const client = generateClient<Schema>();
 
 export default function App() {
-  const [authState, setAuthState] = useState({
+  const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     isLoading: true,
     error: null,
     user: null
   });
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuthStatus();
