@@ -18,8 +18,8 @@ export const auth = defineAuth({
           email: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
         },
       },
-      logoutUrls: ["http://localhost:3000"],
-      callbackUrls: ["http://localhost:3000"],
+      logoutUrls: [process.env.AMPLIFY_AUTH_LOGOUT_URL || "http://localhost:3000"],
+      callbackUrls: [process.env.AMPLIFY_AUTH_CALLBACK_URL || "http://localhost:3000"],
     },
   },
 })

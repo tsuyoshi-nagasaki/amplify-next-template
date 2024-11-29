@@ -159,7 +159,7 @@ export default function App() {
             onClick={handleSignIn}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center space-x-2"
           >
-            <span>Microsoftでサインイン</span>
+            <span>Microsoftアカウントでサインイン</span>
           </button>
         </div>
       )}
