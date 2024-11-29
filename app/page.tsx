@@ -7,60 +7,91 @@ import "./../app/app.css";
 import { Amplify } from "aws-amplify";
 import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
-import config from "@/amplify/config.js";
+import { getCurrentUser, signInWithRedirect, signOut, fetchUserAttributes } from 'aws-amplify/auth';
+import outputs from '@/amplify_outputs.json';
 
 // Amplifyの設定は必要
-Amplify.configure(config);
+Amplify.configure(outputs);
 
 const client = generateClient<Schema>();
 
 export default function App() {
-  return (
-    <Authenticator>
-      {({ signOut }) => (
-        <main>
-          <h1>My todos</h1>
-          <TodoList />
-          <button onClick={signOut}>Sign out</button>
-        </main>
-      )}
-    </Authenticator>
-  );
-}
-
-function TodoList() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
+  const [username, setUsername] = useState<string | null>(null);
+  const [todos, setTodos] = useState([]);
 
   useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: ({ items }) => setTodos([...items]),
-    });
+    checkUserAuthentication();
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setUsername(null);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  async function checkUserAuthentication() {
+    try {
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        const attributes = await fetchUserAttributes();        
+        const displayName = attributes.email || currentUser.username || currentUser.userId;
+        setUsername(displayName);
+        return true;
+      }
+    } catch (error) {
+      console.error("Error getting current user:", error);
+      setUsername(null);
+      return false;
+    }
+  }
 
   async function createTodo() {
     const content = window.prompt("Todo content");
     if (content) {
-      await client.models.Todo.create({
-        content,
-      });
+      try {
+        await client.models.Todo.create({
+          content,
+        });
+      } catch (error) {
+        console.error("Error creating todo:", error);
+      }
     }
   }
 
+  const handleMicrosoftSignIn = async () => {
+    try {
+      await signInWithRedirect({
+        provider: { custom: "MicrosoftEntraIDSAML" }
+      });
+    } catch (error) {
+      console.error("Error signing in:", error);
+    }
+  };
+
   return (
-    <>
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.content}</li>
-        ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/nextjs/start/quickstart/nextjs-app-router-client-components/">
-          Review next steps of this tutorial.
-        </a>
-      </div>
-    </>
+    <main>
+      {username ? (
+        <div>
+          <h1>Welcome, {username}!</h1>
+          <h1>My Todos</h1>
+          <button onClick={createTodo}>+ new</button>
+
+          <div>
+            🥳 App successfully hosted. Try creating a new todo.
+            <br/>
+            <button onClick={handleSignOut}>
+              Sign Out
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={handleMicrosoftSignIn}>
+          Sign in with Microsoft
+        </button>
+      )}
+    </main>
   );
 }
