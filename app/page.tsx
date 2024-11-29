@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Amplify } from "aws-amplify";
 import { signInWithRedirect, signOut, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import outputs from '@/amplify_outputs.json';
+import { post } from 'aws-amplify/api';
 
 Amplify.configure(outputs);
 
@@ -121,7 +122,13 @@ export default function App() {
   
     try {
       const restOperation = await post({
-        // 検討中の API 設定
+        apiName: 'myRestApi',
+        path: 'items',
+        options: {
+          body: {
+            message: 'Mow the lawn'
+          }
+        }
       });
       
       const { body } = await restOperation.response;
